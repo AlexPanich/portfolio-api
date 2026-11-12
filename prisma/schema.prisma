@@ -1,0 +1,161 @@
+// Data model of the digital business card.
+//
+// Everything hangs off a Profile, so a single database can hold several
+// profiles (e.g. localized versions) without schema changes. Ordering is
+// explicit (`position`) because a CV is curated, not sorted alphabetically.
+
+generator client {
+  provider               = "prisma-client"
+  previewFeatures        = ["relationJoins"]
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  importFileExtension    = "js"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// Stable public identifier used by the `profile(slug:)` query.
+  slug        String   @unique
+  name        String
+  headline    String
+  description String
+  location    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  links      ProfileLink[]
+  skills     Skill[]
+  experience Experience[]
+  projects   Project[]
+
+  @@map("profiles")
+}
+
+enum LinkType {
+  GITHUB
+  LINKEDIN
+  TELEGRAM
+  EMAIL
+  WEBSITE
+  OTHER
+
+  @@map("link_type")
+}
+
+model ProfileLink {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  profileId String   @map("profile_id") @db.Uuid
+  type      LinkType
+  label     String
+  url       String
+  position  Int
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, url])
+  @@index([profileId, position])
+  @@map("profile_links")
+}
+
+enum SkillCategory {
+  LANGUAGE
+  BACKEND
+  DATABASE
+  API
+  DEVOPS
+  CLOUD
+  TESTING
+  FRONTEND
+  TOOLING
+  OTHER
+
+  @@map("skill_category")
+}
+
+model Skill {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  profileId String        @map("profile_id") @db.Uuid
+  name      String
+  category  SkillCategory
+  position  Int
+
+  profile    Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  experience ExperienceSkill[]
+  projects   ProjectSkill[]
+
+  @@unique([profileId, name])
+  @@index([profileId, position])
+  @@map("skills")
+}
+
+model Experience {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  profileId    String    @map("profile_id") @db.Uuid
+  company      String
+  companyUrl   String?   @map("company_url")
+  position     String
+  location     String?
+  description  String?
+  startDate    DateTime  @map("start_date") @db.Date
+  /// NULL means the position is current.
+  endDate      DateTime? @map("end_date") @db.Date
+  /// Achievements are ordered value objects that never live on their own,
+  /// so they are stored inline instead of in a separate table.
+  achievements String[]
+
+  profile      Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  technologies ExperienceSkill[]
+
+  @@index([profileId, startDate(sort: Desc)])
+  @@map("experience")
+}
+
+model Project {
+  id            String  @id @default(uuid(7)) @db.Uuid
+  profileId     String  @map("profile_id") @db.Uuid
+  name          String
+  description   String
+  url           String?
+  repositoryUrl String? @map("repository_url")
+  position      Int
+
+  profile      Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  technologies ProjectSkill[]
+
+  @@unique([profileId, name])
+  @@index([profileId, position])
+  @@map("projects")
+}
+
+/// Technologies used in a job. Linking to Skill (instead of free text)
+/// keeps one canonical spelling and lets the API answer "where was X used".
+model ExperienceSkill {
+  experienceId String @map("experience_id") @db.Uuid
+  skillId      String @map("skill_id") @db.Uuid
+  position     Int
+
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([experienceId, skillId])
+  @@index([skillId])
+  @@map("experience_skills")
+}
+
+model ProjectSkill {
+  projectId String @map("project_id") @db.Uuid
+  skillId   String @map("skill_id") @db.Uuid
+  position  Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, skillId])
+  @@index([skillId])
+  @@map("project_skills")
+}
