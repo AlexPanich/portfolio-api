@@ -1,0 +1,37 @@
+# One command from a clean checkout:  docker compose up --build
+# Then open http://localhost:3000/graphql (Apollo Sandbox).
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+      POSTGRES_DB: portfolio
+    ports:
+      - '${DB_PORT:-5434}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U portfolio -d portfolio']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://portfolio:portfolio@db:5432/portfolio
+      LOG_SQL: ${LOG_SQL:-false}
+    ports:
+      - '${API_PORT:-3000}:3000'
+
+volumes:
+  db-data:
