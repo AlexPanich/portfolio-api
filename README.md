@@ -9,6 +9,7 @@ Backend-приложение, которое через GraphQL API (Apollo Sand
 | Демо (Apollo Sandbox) | **https://portfolio-api-z17b.onrender.com/graphql** (Render free: первый запрос после простоя ~30–60 с) |
 | Health check | [https://portfolio-api-z17b.onrender.com/health](https://portfolio-api-z17b.onrender.com/health) |
 | Схема GraphQL | [`schema.gql`](./schema.gql) |
+| Демо-клиент (React + Apollo) | https://portfolio-client-m3oz.onrender.com · [исходники](https://github.com/AlexPanich/portfolio-client) |
 
 ---
 
