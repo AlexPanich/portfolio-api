@@ -7,11 +7,13 @@ import { ExperienceModule } from './modules/experience/experience.module.js';
 import { ProfileModule } from './modules/profile/profile.module.js';
 import { ProjectsModule } from './modules/projects/projects.module.js';
 import { SkillsModule } from './modules/skills/skills.module.js';
+import { StorageModule } from './storage/storage.module.js';
 
 @Module({
   imports: [
     AppConfigModule,
     DatabaseModule,
+    StorageModule,
     GraphQLModule,
     ProfileModule,
     SkillsModule,

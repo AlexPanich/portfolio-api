@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Env } from './env.schema.js';
+import type { Env, StorageConfig } from './env.schema.js';
 
 /** Typed facade over ConfigService, so call sites never deal with string keys. */
 @Injectable()
@@ -29,5 +29,24 @@ export class AppConfig {
 
   get logSql(): boolean {
     return this.config.get('LOG_SQL', { infer: true });
+  }
+
+  /** `null` when object storage is not configured (feature is optional). */
+  get storage(): StorageConfig | null {
+    const bucket = this.config.get('S3_BUCKET', { infer: true });
+    if (!bucket) return null;
+    return {
+      bucket,
+      region: this.config.get('S3_REGION', { infer: true }),
+      endpoint: this.config.get('S3_ENDPOINT', { infer: true }),
+      publicEndpoint: this.config.get('S3_PUBLIC_ENDPOINT', { infer: true }),
+      // Presence is guaranteed by the env schema when a bucket is set.
+      accessKeyId: this.config.get('S3_ACCESS_KEY_ID', { infer: true })!,
+      secretAccessKey: this.config.get('S3_SECRET_ACCESS_KEY', {
+        infer: true,
+      })!,
+      forcePathStyle: this.config.get('S3_FORCE_PATH_STYLE', { infer: true }),
+      urlTtlSeconds: this.config.get('S3_URL_TTL_SECONDS', { infer: true }),
+    };
   }
 }
