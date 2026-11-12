@@ -117,7 +117,9 @@ type Skill {
 
 """Area a skill belongs to; used to group skills in a CV."""
 enum SkillCategory {
+  AI
   API
+  ARCHITECTURE
   BACKEND
   CLOUD
   DATABASE

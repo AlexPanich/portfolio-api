@@ -71,7 +71,9 @@ enum SkillCategory {
   CLOUD
   TESTING
   FRONTEND
+  ARCHITECTURE
   TOOLING
+  AI
   OTHER
 
   @@map("skill_category")
