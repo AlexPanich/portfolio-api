@@ -7,6 +7,11 @@ A date string, such as 2007-12-03, compliant with the `full-date` format outline
 """
 scalar Date
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 """Length of time in whole months."""
 type Duration {
   """Months on top of full years (0-11)."""
@@ -32,6 +37,18 @@ type Experience {
   technologies: [Skill!]!
 }
 
+"""An image stored in S3-compatible object storage."""
+type Image {
+  contentType: String!
+  expiresAt: DateTime!
+
+  """Size in bytes."""
+  size: Int!
+
+  """Presigned download URL; valid until `expiresAt`."""
+  url: URL!
+}
+
 """Kind of resource a link points to; lets clients pick an icon."""
 enum LinkType {
   EMAIL
@@ -55,6 +72,9 @@ type Period {
 
 """The person this business card presents."""
 type Profile {
+  """Photo from object storage; null if absent or storage is off."""
+  avatar: Image
+
   """Short bio."""
   description: String!
 

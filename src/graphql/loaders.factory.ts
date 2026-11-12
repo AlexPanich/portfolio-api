@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { createEntityLoader } from '../common/dataloader/entity-loader.js';
 import { createGroupedLoader } from '../common/dataloader/grouped-loader.js';
 import { ExperienceRepository } from '../modules/experience/experience.repository.js';
+import { FilesRepository } from '../modules/files/files.repository.js';
 import { ProfileRepository } from '../modules/profile/profile.repository.js';
 import { ProjectsRepository } from '../modules/projects/projects.repository.js';
 import { SkillsRepository } from '../modules/skills/skills.repository.js';
@@ -20,6 +22,7 @@ export class LoadersFactory {
     private readonly skills: SkillsRepository,
     private readonly experience: ExperienceRepository,
     private readonly projects: ProjectsRepository,
+    private readonly files: FilesRepository,
   ) {}
 
   create() {
@@ -51,6 +54,10 @@ export class LoadersFactory {
         fetch: (ids: readonly string[]) => this.skills.findByProjectIds(ids),
         keyOf: (link) => link.ownerId,
         select: (link) => link.skill,
+      }),
+      fileById: createEntityLoader({
+        fetch: (ids: readonly string[]) => this.files.findByIds(ids),
+        keyOf: (file) => file.id,
       }),
     };
   }

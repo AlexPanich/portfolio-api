@@ -6,6 +6,9 @@ export const EXAMPLE_QUERY = /* GraphQL */ `
       headline
       description
       location
+      avatar {
+        url
+      }
       totalExperience {
         years
         months

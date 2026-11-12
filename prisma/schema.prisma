@@ -25,9 +25,11 @@ model Profile {
   headline    String
   description String
   location    String?
+  avatarId    String?  @map("avatar_id") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  avatar     StoredFile?   @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   links      ProfileLink[]
   skills     Skill[]
   experience Experience[]
@@ -160,4 +162,23 @@ model ProjectSkill {
   @@id([projectId, skillId])
   @@index([skillId])
   @@map("project_skills")
+}
+
+/// Metadata of an object kept in S3. The database stores the object key,
+/// never a URL: URLs are presigned on read, so they can expire, change
+/// host (MinIO locally, R2/S3 in prod) or move behind a CDN freely.
+model StoredFile {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// Content-addressed key, e.g. `avatars/<sha256>.jpg`: identical content
+  /// maps to the same object, so re-seeding never re-uploads it.
+  key         String   @unique
+  contentType String   @map("content_type")
+  size        Int
+  /// SHA-256 of the content, hex.
+  checksum    String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  avatarOf Profile[]
+
+  @@map("stored_files")
 }

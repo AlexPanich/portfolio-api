@@ -6,8 +6,11 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import type { Profile as ProfileRecord } from '../../generated/prisma/client.js';
 import type { GraphQLContext } from '../../graphql/graphql-context.js';
 import { ExperienceService } from '../experience/experience.service.js';
+import { FilesService } from '../files/files.service.js';
+import { Image } from '../files/models/image.model.js';
 import { Duration, Experience } from '../experience/models/experience.model.js';
 import { Project } from '../projects/models/project.model.js';
 import { SkillCategory } from '../../generated/prisma/enums.js';
@@ -25,6 +28,7 @@ export class ProfileResolver {
   constructor(
     private readonly profiles: ProfileService,
     private readonly experienceService: ExperienceService,
+    private readonly files: FilesService,
   ) {}
 
   @Query(() => Profile, {
@@ -36,6 +40,18 @@ export class ProfileResolver {
     @Args('slug', { type: () => String, nullable: true }) slug?: string | null,
   ) {
     return this.profiles.findBySlug(slug);
+  }
+
+  @ResolveField(() => Image, {
+    nullable: true,
+    description: 'Photo from object storage; null if absent or storage is off.',
+  })
+  async avatar(
+    @Parent() profile: ProfileRecord,
+    @Context() { loaders }: GraphQLContext,
+  ) {
+    if (!profile.avatarId) return null;
+    return this.files.toImage(await loaders.fileById.load(profile.avatarId));
   }
 
   @ResolveField(() => [ProfileLink])
