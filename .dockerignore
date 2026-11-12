@@ -13,3 +13,4 @@ README.md
 docker-compose.yml
 Dockerfile
 .dockerignore
+CLAUDE.md
