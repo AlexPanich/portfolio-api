@@ -21,6 +21,7 @@ export const profile = {
   links: [
     { type: 'GITHUB', label: 'GitHub', url: 'https://github.com/AlexPanich' },
     { type: 'TELEGRAM', label: 'Telegram', url: 'https://t.me/alexpanich' },
+    { type: 'EMAIL', label: 'E-mail', url: 'mailto:nasada@yandex.ru' },
   ],
   skills: [
     { name: 'TypeScript', category: 'LANGUAGE' },
