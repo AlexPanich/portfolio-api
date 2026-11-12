@@ -1,0 +1,135 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+"""Length of time in whole months."""
+type Duration {
+  """Months on top of full years (0-11)."""
+  months: Int!
+  totalMonths: Int!
+  years: Int!
+}
+
+"""A position held at a company."""
+type Experience {
+  achievements: [String!]!
+  company: String!
+  companyUrl: String
+  description: String
+  id: ID!
+  location: String
+  period: Period!
+
+  """Job title."""
+  position: String!
+
+  """Stack used in this position."""
+  technologies: [Skill!]!
+}
+
+"""Kind of resource a link points to; lets clients pick an icon."""
+enum LinkType {
+  EMAIL
+  GITHUB
+  LINKEDIN
+  OTHER
+  TELEGRAM
+  WEBSITE
+}
+
+"""When a position was held."""
+type Period {
+  """Inclusive, counted in months."""
+  duration: Duration!
+
+  """Empty while the position is current."""
+  endDate: Date
+  isCurrent: Boolean!
+  startDate: Date!
+}
+
+"""The person this business card presents."""
+type Profile {
+  """Short bio."""
+  description: String!
+
+  """Most recent first."""
+  experience: [Experience!]!
+
+  """One-line summary, e.g. "Backend engineer"."""
+  headline: String!
+  id: ID!
+  links: [ProfileLink!]!
+  location: String
+  name: String!
+  projects: [Project!]!
+
+  """Ordered by relevance."""
+  skills(category: SkillCategory): [Skill!]!
+  slug: String!
+
+  """Total working time; overlapping positions are counted once."""
+  totalExperience: Duration!
+}
+
+"""A public professional resource."""
+type ProfileLink {
+  id: ID!
+  label: String!
+  type: LinkType!
+  url: URL!
+}
+
+"""A project worth showing: product, library or demo."""
+type Project {
+  description: String!
+  id: ID!
+  name: String!
+
+  """Source code."""
+  repositoryUrl: URL
+
+  """Tech stack of the project."""
+  technologies: [Skill!]!
+
+  """Live product or demo."""
+  url: URL
+}
+
+type Query {
+  """
+  Profile by slug; the default profile when no slug is given. Null if not found.
+  """
+  profile(slug: String): Profile
+}
+
+"""A technology, language or practice."""
+type Skill {
+  category: SkillCategory!
+  id: ID!
+  name: String!
+}
+
+"""Area a skill belongs to; used to group skills in a CV."""
+enum SkillCategory {
+  API
+  BACKEND
+  CLOUD
+  DATABASE
+  DEVOPS
+  FRONTEND
+  LANGUAGE
+  OTHER
+  TESTING
+  TOOLING
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
