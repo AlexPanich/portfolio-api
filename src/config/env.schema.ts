@@ -17,7 +17,7 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   /** Profile returned by `profile` when no slug is passed. */
-  DEFAULT_PROFILE_SLUG: z.string().min(1).default('me'),
+  DEFAULT_PROFILE_SLUG: z.string().min(1).default('alexpanich'),
   /** Logs every SQL statement Prisma sends; handy to watch DataLoader batching. */
   LOG_SQL: booleanFlag,
 });

@@ -1,3 +1,4 @@
+import { totalExperience } from '../modules/experience/period.js';
 import { profile } from './data/profile.data.js';
 import { profileSeedSchema, type ProfileSeedInput } from './seed.schema.js';
 
@@ -31,6 +32,13 @@ const issues = (input: unknown) => {
 describe('profileSeedSchema', () => {
   it('accepts the real CV data shipped with the app', () => {
     expect(issues(profile)).toEqual([]);
+  });
+
+  it('yields the same total experience as the source CV (10 years 1 month)', () => {
+    // Jobs in the CV overlap by a month at a few seams; hh.ru counts them once too.
+    const { experience } = profileSeedSchema.parse(profile);
+    const total = totalExperience(experience, new Date('2026-11-12T00:00:00Z'));
+    expect(total).toEqual({ years: 10, months: 1, totalMonths: 121 });
   });
 
   it('parses YYYY-MM into UTC dates and defaults optional collections', () => {

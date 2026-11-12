@@ -18,7 +18,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: TEST_DATABASE_URL,
-      DEFAULT_PROFILE_SLUG: 'me',
+      DEFAULT_PROFILE_SLUG: 'alexpanich',
     },
     // Suites share one database.
     fileParallelism: false,
