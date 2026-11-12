@@ -276,6 +276,7 @@ export const profile = {
         'Эта цифровая визитка: GraphQL API на NestJS, Prisma и PostgreSQL. Вложенные ' +
         'связи через DataLoader (один SQL-запрос на связь при любом объёме данных), ' +
         'валидируемый идемпотентный сид, e2e-тесты с подсчётом SQL-запросов, Docker и CI.',
+      url: 'https://portfolio-api-z17b.onrender.com/graphql',
       repositoryUrl: 'https://github.com/AlexPanich/portfolio-api',
       technologies: [
         'TypeScript',
