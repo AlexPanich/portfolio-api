@@ -18,6 +18,7 @@ export const profile = {
     'Claude Code, spec-driven development, собственные skills, hooks и MCP-серверы. ' +
     'Ищу команду, где AI-агенты — часть процесса разработки, а не эксперимент.',
   location: 'Москва',
+  avatar: 'avatar.jpg',
   links: [
     { type: 'GITHUB', label: 'GitHub', url: 'https://github.com/AlexPanich' },
     { type: 'TELEGRAM', label: 'Telegram', url: 'https://t.me/alexpanich' },

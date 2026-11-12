@@ -64,6 +64,14 @@ export const profileSeedSchema = z
     headline: nonEmpty,
     description: nonEmpty,
     location: nonEmpty.optional(),
+    /** Image file name inside `src/seed/assets/`; uploaded to S3 on seed. */
+    avatar: z
+      .string()
+      .regex(
+        /^[\w.-]+\.(jpe?g|png|webp)$/i,
+        'Expected a .jpg, .png or .webp file name',
+      )
+      .optional(),
     links: z
       .array(
         z.object({
