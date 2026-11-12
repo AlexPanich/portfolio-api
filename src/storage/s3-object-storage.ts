@@ -42,7 +42,12 @@ export class S3ObjectStorage extends ObjectStorage implements OnModuleDestroy {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
       },
-    };
+      // AWS SDK v3 adds CRC checksums to every request by default; not all
+      // S3-compatible stores (Cloudflare R2, older MinIO) support them, so
+      // checksums are sent only when an operation requires them.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
+    } as const;
     this.client = new S3Client({ ...base, endpoint: config.endpoint });
     this.signer = new S3Client({
       ...base,
