@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { setupApp } from '../src/app.setup.js';
 import { PrismaService } from '../src/database/prisma.service.js';
 import { EXAMPLE_QUERY } from '../src/graphql/example-query.js';
 import { profile as cv } from '../src/seed/data/profile.data.js';
@@ -71,6 +72,7 @@ describe('GraphQL API (e2e)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    setupApp(app);
     await app.init();
 
     app.get(PrismaService).$on('query', () => sqlCount++);
@@ -240,6 +242,19 @@ describe('GraphQL API (e2e)', () => {
       expect(files[0].key).toMatch(/^avatars\/[0-9a-f]{64}\.jpg$/);
       expect(files[0]._count.avatarOf).toBeGreaterThanOrEqual(1);
     });
+  });
+
+  it('allows cross-origin browser clients (CORS preflight)', async () => {
+    const res = await request(app.getHttpServer())
+      .options('/graphql')
+      .set('Origin', 'http://localhost:5173')
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'content-type')
+      .expect(204);
+    expect(res.headers['access-control-allow-origin']).toBe(
+      'http://localhost:5173',
+    );
+    expect(res.headers['access-control-allow-methods']).toContain('POST');
   });
 
   it('serves Apollo Sandbox to browsers', async () => {

@@ -31,6 +31,10 @@ export class AppConfig {
     return this.config.get('LOG_SQL', { infer: true });
   }
 
+  get corsOrigins(): '*' | string[] {
+    return this.config.get('CORS_ORIGINS', { infer: true });
+  }
+
   /** `null` when object storage is not configured (feature is optional). */
   get storage(): StorageConfig | null {
     const bucket = this.config.get('S3_BUCKET', { infer: true });

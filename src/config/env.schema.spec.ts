@@ -15,6 +15,19 @@ describe('validateEnv', () => {
     expect(env.S3_BUCKET).toBeUndefined();
   });
 
+  it('parses CORS origins: "*" by default, or a list of URLs', () => {
+    expect(validateEnv(base).CORS_ORIGINS).toBe('*');
+    expect(
+      validateEnv({
+        ...base,
+        CORS_ORIGINS: 'http://localhost:5173, https://demo.example.com',
+      }).CORS_ORIGINS,
+    ).toEqual(['http://localhost:5173', 'https://demo.example.com']);
+    expect(() => validateEnv({ ...base, CORS_ORIGINS: 'not-a-url' })).toThrow(
+      /CORS_ORIGINS/,
+    );
+  });
+
   it('rejects a non-PostgreSQL database URL', () => {
     expect(() => validateEnv({ DATABASE_URL: 'mysql://x/y' })).toThrow(
       /DATABASE_URL/,

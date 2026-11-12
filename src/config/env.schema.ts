@@ -28,6 +28,22 @@ export const envSchema = z
     DEFAULT_PROFILE_SLUG: z.string().min(1).default('alexpanich'),
     /** Logs every SQL statement Prisma sends; handy to watch DataLoader batching. */
     LOG_SQL: booleanFlag,
+    /**
+     * Browser origins allowed to call the API, comma-separated, or `*`.
+     * The API is public and read-only with no cookies, so `*` is safe.
+     */
+    CORS_ORIGINS: z
+      .string()
+      .default('*')
+      .transform((value) =>
+        value.trim() === '*'
+          ? ('*' as const)
+          : value
+              .split(',')
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+      )
+      .pipe(z.union([z.literal('*'), z.array(z.url()).min(1)])),
 
     // --- S3-compatible object storage (optional: unset S3_BUCKET = disabled)
     S3_BUCKET: optional(z.string().min(3)),
