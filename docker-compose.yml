@@ -1,5 +1,6 @@
 # One command from a clean checkout:  docker compose up --build
 # Then open http://localhost:3000/graphql (Apollo Sandbox).
+# MinIO console: http://localhost:9101 (portfolio / portfolio-secret).
 
 services:
   db:
@@ -19,19 +20,50 @@ services:
       timeout: 5s
       retries: 20
 
+  # S3-compatible object storage. MinIO Inc. stopped publishing community
+  # images in late 2025; pgsty/minio is a maintained build of the same server.
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: portfolio
+      MINIO_ROOT_PASSWORD: portfolio-secret
+    ports:
+      - '${MINIO_PORT:-9100}:9000'
+      - '${MINIO_CONSOLE_PORT:-9101}:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fs', 'http://localhost:9000/minio/health/live']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
   api:
     build: .
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://portfolio:portfolio@db:5432/portfolio
       LOG_SQL: ${LOG_SQL:-false}
+      # The bucket is created by the seeder if missing.
+      S3_BUCKET: portfolio
+      S3_ENDPOINT: http://minio:9000
+      # URLs are signed for the host the browser sees, not the Docker one.
+      S3_PUBLIC_ENDPOINT: http://localhost:${MINIO_PORT:-9100}
+      S3_ACCESS_KEY_ID: portfolio
+      S3_SECRET_ACCESS_KEY: portfolio-secret
+      S3_FORCE_PATH_STYLE: 'true'
     ports:
       - '${API_PORT:-3000}:3000'
 
 volumes:
   db-data:
+  minio-data:

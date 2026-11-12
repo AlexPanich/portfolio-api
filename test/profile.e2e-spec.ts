@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -20,6 +21,7 @@ function bigProfile(size: number): ProfileSeedInput {
     slug: 'big',
     name: 'Big Profile',
     headline: 'Load test',
+    avatar: 'avatar.jpg',
     description: 'Many rows in every relation',
     links: [{ type: 'WEBSITE', label: 'Site', url: 'https://example.com' }],
     skills,
@@ -132,9 +134,9 @@ describe('GraphQL API (e2e)', () => {
   });
 
   describe('query efficiency', () => {
-    // 1 profile + links + skills + experience + projects
+    // 1 profile + avatar + links + skills + experience + projects
     // + experience.technologies + projects.technologies
-    const EXPECTED_QUERIES = 7;
+    const EXPECTED_QUERIES = 8;
 
     beforeAll(() => seeder.sync(bigProfile(30)));
 
@@ -201,6 +203,43 @@ describe('GraphQL API (e2e)', () => {
     await request(app.getHttpServer())
       .get('/health')
       .expect(200, { status: 'ok' });
+  });
+
+  describe('avatar (S3)', () => {
+    const query = `{ profile { avatar { url expiresAt contentType size } } }`;
+
+    it('is served through a presigned URL to a private bucket', async () => {
+      const { data } = await gql(query);
+      const { avatar } = data.profile;
+      const original = await readFile(
+        new URL('../src/seed/assets/avatar.jpg', import.meta.url),
+      );
+
+      expect(avatar).toMatchObject({
+        contentType: 'image/jpeg',
+        size: original.length,
+      });
+      expect(new Date(avatar.expiresAt).getTime()).toBeGreaterThan(Date.now());
+
+      const res = await fetch(avatar.url);
+      expect(res.status).toBe(200);
+      expect(Buffer.from(await res.arrayBuffer()).equals(original)).toBe(true);
+
+      // Without a valid signature the object is not readable.
+      const unsigned = avatar.url.split('?')[0];
+      expect((await fetch(unsigned)).status).toBe(403);
+    });
+
+    it('reuses one stored object for identical content across profiles', async () => {
+      const prisma = app.get(PrismaService);
+      const files = await prisma.storedFile.findMany({
+        where: { avatarOf: { some: {} } },
+        select: { key: true, _count: { select: { avatarOf: true } } },
+      });
+      expect(files).toHaveLength(1);
+      expect(files[0].key).toMatch(/^avatars\/[0-9a-f]{64}\.jpg$/);
+      expect(files[0]._count.avatarOf).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('serves Apollo Sandbox to browsers', async () => {

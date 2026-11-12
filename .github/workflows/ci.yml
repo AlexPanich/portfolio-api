@@ -33,6 +33,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Same MinIO image/credentials as local dev, on localhost:9100.
+      - name: Start MinIO
+        run: docker compose up --detach --wait minio
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
@@ -53,6 +56,13 @@ jobs:
             -H 'content-type: application/json' \
             -d '{"query":"{ profile { name skills { name } experience { company } projects { name } } }"}' \
             | tee /dev/stderr | jq -e '.data.profile.name and (.errors | not)'
+      - name: Download the avatar through its presigned S3 URL
+        run: |
+          url=$(curl -sf http://localhost:3000/graphql \
+            -H 'content-type: application/json' \
+            -d '{"query":"{ profile { avatar { url } } }"}' | jq -er '.data.profile.avatar.url')
+          curl -sf "$url" -o avatar.jpg
+          cmp avatar.jpg src/seed/assets/avatar.jpg
       - name: Logs
         if: always()
-        run: docker compose logs api
+        run: docker compose logs api minio
